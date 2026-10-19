@@ -1,3 +1,67 @@
+# Tibia Client Acessibilidade
+
+> Este repositório é um fork do [REA](https://github.com/morluto/rea). O trabalho
+> sobre o Tibia fica em [`tibia-acessibilidade/`](tibia-acessibilidade/). A
+> documentação original do REA continua logo abaixo desta seção.
+
+**Objetivo:** fazer engenharia reversa do client atual do Tibia para entender
+como os dados chegam até a interface e mostrar, para acessibilidade, de onde
+vem cada informação (Vida, Mana, CAP...).
+
+* Documento principal: [tibia-acessibilidade/docs/ANALISE_CLIENT_TIBIA.md](tibia-acessibilidade/docs/ANALISE_CLIENT_TIBIA.md)
+* Ferramentas de análise: [tibia-acessibilidade/ferramentas/](tibia-acessibilidade/ferramentas/)
+* Client acessível de demonstração: [tibia-acessibilidade/client-acessivel/](tibia-acessibilidade/client-acessivel/)
+
+**Regras seguidas:** nada de bypass do BattlEye, nada de ler ou alterar a
+memória do client oficial, nenhuma conexão de bots ou ferramentas com
+servidores oficiais. O client instalado fica em `tibia/`, fora do git.
+
+## Diário de atividades (em ordem)
+
+1. **Repositório.** Confirmado que o link correto é `https://github.com/alexportz/rea`
+   (fork do REA); clonado em `P:\PROJETOS\TibiaClientAcessibility` e criada a
+   branch `tibia-acessibilidade`.
+2. **`.gitignore`.** Adicionada a linha `/tibia/` para o client nunca subir.
+3. **Download do client.** `curl` em `static.tibia.com` recebeu 403 (verificação
+   do Cloudflare), então o download foi feito pelo navegador, depois do aceite do
+   Tibia Service Agreement e do EULA do BattlEye pelo dono do projeto.
+4. **Verificação do instalador.** `Tibia_Setup.exe` com assinatura Authenticode
+   válida da CipSoft GmbH; identificado como instalador NSIS 3.11.
+5. **Instalação.** `Tibia_Setup.exe /S /D=...\tibia` instalou o launcher; o
+   launcher baixou o client **15.33.9d148f** em `tibia/packages/Tibia`. Os
+   manifestos `package.json` (1.496 arquivos) e `assets.json` (7.094 assets)
+   foram conferidos: nada faltando. O launcher foi fechado sem abrir o jogo.
+6. **Reconhecimento do binário.** `client.exe` é PE32+ x64 MSVC, sem packer,
+   baseado em Qt 6 + QML (`ferramentas/info_pe.py`).
+7. **Classes (RTTI).** 2.197 nomes de classe extraídos; revelaram os módulos
+   `tibia::network`, `tibia::protocol`, `tibia::game`, `tibia::gamewindow`, além
+   de Crypto++ (XTEA, RSA), zlib e 621 tipos protobuf de protocolo
+   (`ferramentas/listar_classes_rtti.py`).
+8. **Interface (QML).** 395 arquivos QML recuperados de dentro do `client.exe`;
+   localizados `healthAndMana` (Vida/Mana) e `inventorySidebarWidget` (CAP)
+   (`ferramentas/extrair_qml.py`).
+9. **Ponte C++ → QML.** Metadados do Qt mostraram `TStatusBarController`
+   (`currentHitpoints`, `maxHitpoints`, `currentMana`...) e
+   `TPlayerInventoryAndStatusController` (`capacity`) (`ferramentas/metadados_qt.py`).
+10. **Mensagens.** Encontrado `TProtocolMessageQueue` com um sinal Qt por
+    mensagem, como `receivedPlayerDataCurrentMessage`, e os nomes
+    `GAMESERVER_MESSAGE_TYPE_*`.
+11. **Esquemas protobuf.** Reconstruídos `appearances.proto`, `shared.proto`,
+    `map.proto` e `sounds.proto` a partir dos descritores embutidos
+    (`ferramentas/extrair_proto.py`).
+12. **Assets.** Decodificados `appearances.dat` (43.516 objetos com nome),
+    folhas de sprites LZMA → BMP 384×384, `staticdata.dat` e `map.dat`
+    (`ferramentas/analisar_assets.py`).
+13. **Client acessível.** Criados `protocolo.py`, `servidor_demo.py` (só
+    127.0.0.1) e `client_acessivel.py`: Vida, Mana e CAP com tooltip ao passar e
+    segurar o mouse mostrando quadro TCP, offset, bytes crus e endereços de
+    memória do próprio client, além da propriedade equivalente no client
+    oficial. `teste_protocolo.py` passa.
+14. **Documento.** Escrito `docs/ANALISE_CLIENT_TIBIA.md` com técnicas, fluxos e
+    o que é observado versus inferido.
+
+---
+
 <div align="center">
 
 **English** · [简体中文](docs/readme/README_zh.md) · [繁體中文](docs/readme/README_zh-TW.md) · [日本語](docs/readme/README_ja.md) · [한국어](docs/readme/README_ko.md) · [Türkçe](docs/readme/README_tr.md) · [Русский](docs/readme/README_ru.md) · [Tiếng Việt](docs/readme/README_vi.md) · [ไทย](docs/readme/README_th.md) · [Deutsch](docs/readme/README_de.md) · [Español](docs/readme/README_es.md) · [Français](docs/readme/README_fr.md) · [Українська](docs/readme/README_uk.md) · [Polski](docs/readme/README_pl.md) · [Português (Brasil)](docs/readme/README_pt-BR.md) · [العربية](docs/readme/README_ar.md) · [فارسی](docs/readme/README_fa.md) · [Bahasa Indonesia](docs/readme/README_id.md) · [Italiano](docs/readme/README_it.md)
