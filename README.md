@@ -81,6 +81,10 @@ servidores oficiais. O client instalado fica em `tibia/`, fora do git.
 22. **Teste no jogo.** Segurando o mouse sobre a vida aparece, por exemplo,
     "offset +1 da mensagem 0xA0, bytes B9 00 00 00 = 185" e o endereço de
     `m_health` no `LocalPlayer`. Capturas em `docs/otclient_tooltip_*.png`.
+23. **Configurações separadas.** O OTClient gravava em `%APPDATA%\otcr\otclient`,
+    pasta que já era usada pelo OTClient de outro projeto. O `init.lua` do nosso
+    OTClient passou a usar `g_app.setCompactName("otclient-acessibilidade")`, então
+    as configurações dele ficam só em `%APPDATA%\otcr\otclient-acessibilidade`.
 
 ---
 

@@ -286,6 +286,10 @@ Ajustes necessários e por quê:
   dela pelo `chromium.googlesource.com` falhava.
 * O download automático de assets do OTClient (repositório de terceiros) ficou
   desligado; os assets vêm só do client oficial instalado em `tibia/`.
+* **Configurações separadas.** No `init.lua`, `g_app.setCompactName("otclient-acessibilidade")`
+  faz o OTClient gravar em `%APPDATA%\otcr\otclient-acessibilidade`, sem misturar
+  com outros OTClients instalados na máquina. O mesmo arquivo aponta o servidor
+  para `http://127.0.0.1:8080/login.php` (protocolo 1511, `httpLogin = true`).
 
 **O patch** (`tibia-acessibilidade/otclient-patch/acessibilidade.patch`):
 
