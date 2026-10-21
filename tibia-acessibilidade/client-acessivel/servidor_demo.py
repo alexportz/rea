@@ -29,7 +29,7 @@ def simulate(tick):
         "health": health, "max_health": max_health,
         "free_capacity": cap,
         "experience": 4_200_000 + tick * 350, "level": 87, "level_percent": (tick * 3) % 100,
-        "base_xp_gain": 100, "xp_voucher": 0, "low_level_bonus": 0, "xp_boost": 0,
+        "base_xp_gain": 100, "low_level_bonus": 0, "xp_boost": 0,
         "stamina_multiplier": 150,
         "mana": mana, "max_mana": max_mana,
         "soul": 100, "stamina_minutes": 2520, "base_speed": 220,

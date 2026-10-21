@@ -59,6 +59,28 @@ servidores oficiais. O client instalado fica em `tibia/`, fora do git.
     oficial. `teste_protocolo.py` passa.
 14. **Documento.** Escrito `docs/ANALISE_CLIENT_TIBIA.md` com técnicas, fluxos e
     o que é observado versus inferido.
+15. **Servidor local.** O Canary mais recente aceita só até o client 15.25, e o
+    oficial é 15.33. Caminho escolhido: Canary 3.6.1 (protocolo 15.11) +
+    OTClient 4.1, ambos open source, baixados em `local/` (fora do git).
+16. **Banco.** Base `canary_teste` criada no MariaDB do XAMPP, iniciado com
+    `--bind-address=127.0.0.1`; importado o `schema.sql` do Canary.
+17. **Canary no ar** em 127.0.0.1:7171/7172 (`bindOnlyGlobalAddress = true`).
+18. **Assets no OTClient.** Copiados do client oficial para
+    `local/otclient/data/things/1511`; o `staticdata.dat` foi adaptado com
+    `ferramentas/adaptar_staticdata_otclient.py` porque o esquema do 15.33 mudou.
+19. **Login HTTP.** O login antigo pela porta 7171 é recusado no 15.x, então foi
+    criado `servidor-local/login.php` (PHP do XAMPP em 127.0.0.1:8080). O
+    OTClient entrou no jogo com o personagem de teste "Knight Sample".
+20. **Patch de acessibilidade no OTClient** (`otclient-patch/acessibilidade.patch`):
+    `parsePlayerStats` anota offset, bytes crus e endereço no buffer de cada
+    campo; `LocalPlayer::getStatOrigins()` junta o endereço do campo no objeto;
+    os módulos Lua mostram isso como tooltip em Vida, Mana e CAP.
+21. **Compilação** com Visual Studio 2022 + vcpkg (`servidor-local/compilar_otclient.bat`).
+    Precisou repetir por quedas de rede e remover a dependência ANGLE, que não é
+    usada na versão OpenGL.
+22. **Teste no jogo.** Segurando o mouse sobre a vida aparece, por exemplo,
+    "offset +1 da mensagem 0xA0, bytes B9 00 00 00 = 185" e o endereço de
+    `m_health` no `LocalPlayer`. Capturas em `docs/otclient_tooltip_*.png`.
 
 ---
 

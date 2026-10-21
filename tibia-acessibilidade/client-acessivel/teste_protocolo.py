@@ -35,7 +35,7 @@ def main():
         assert origins["health"].offset_in_message == 1
         assert origins["max_health"].offset_in_message == 5
         assert origins["free_capacity"].offset_in_message == 9
-        assert origins["mana"].offset_in_message == 1 + 4 + 4 + 4 + 8 + 2 + 1 + 2 * 5
+        assert origins["mana"].offset_in_message == 1 + 4 + 4 + 4 + 8 + 2 + 1 + 2 * 4
     print("ok: XTEA, enquadramento, zlib e origem dos campos conferidos")
 
 

@@ -3,7 +3,7 @@
 Reproduz o *modelo* do protocolo de jogo do Tibia (enquadramento TCP, XTEA,
 opcode + campos little-endian) para que cada valor exibido possa ser rastreado
 até o byte de origem. O layout de PlayerDataCurrent (opcode 0xA0) segue o
-servidor open source Canary e NÃO foi confirmado byte a byte no client 15.33;
+servidor open source Canary e o OTClient (protocolo >= 12.81, sem o campo de voucher) e NÃO foi confirmado byte a byte no client 15.33;
 veja docs/ANALISE_CLIENT_TIBIA.md, seção "O que é observado e o que é inferido".
 
 Cada valor decodificado é guardado em uma estrutura ctypes, então os endereços
@@ -107,7 +107,6 @@ PLAYER_DATA_CURRENT_FIELDS = [
     ("level", "H", "Nível", "TStatusBarController.skillList"),
     ("level_percent", "B", "Percentual para o próximo nível", "TStatusBarController.skillList"),
     ("base_xp_gain", "H", "Taxa base de XP", "(Skills widget)"),
-    ("xp_voucher", "H", "Bônus de voucher", "(Skills widget)"),
     ("low_level_bonus", "H", "Bônus de nível baixo", "(Skills widget)"),
     ("xp_boost", "H", "XP boost da loja", "(Skills widget)"),
     ("stamina_multiplier", "H", "Multiplicador de stamina", "(Skills widget)"),

@@ -253,6 +253,68 @@ Pasta `tibia-acessibilidade/client-acessivel/`:
 Os endereços do tooltip são do **nosso** processo, que é o único lugar onde é
 legítimo apontar memória. Eles mudam a cada execução (ASLR e alocação dinâmica).
 
+## 6.1 Client de jogo real com tooltips: OTClient + servidor Canary local
+
+O simulador acima serviu para validar a ideia. A versão de verdade usa um client
+de jogo completo e open source (OTClient 4.1) conectado a um servidor de testes
+também open source (Canary 3.6.1, protocolo 15.11), tudo em `127.0.0.1`, com os
+gráficos copiados do client oficial 15.33.
+
+Ambiente (pasta `local/`, fora do git; scripts em `tibia-acessibilidade/servidor-local/`):
+
+| Peça | Onde | Porta |
+| --- | --- | --- |
+| Banco MariaDB do XAMPP, base `canary_teste` (`schema.sql` do Canary) | `C:\xampp\mysql` | 127.0.0.1:3306 |
+| Servidor Canary 3.6.1 + mapa `otservbr.otbm`, `bindOnlyGlobalAddress = true` | `local/canary` | 127.0.0.1:7171/7172 |
+| Login HTTP próprio (`login.php`), mesmo JSON do `loginservice.php` oficial | PHP do XAMPP | 127.0.0.1:8080 |
+| OTClient 4.1 compilado com o patch de acessibilidade | `local/otclient/otclient.exe` | — |
+
+Ajustes necessários e por quê:
+
+* **Login por HTTP.** No protocolo 15.x o Canary recusa o login antigo pela
+  porta 7171 (só aceita o protocolo 11.00). O `login.php` responde no formato
+  observado no `client.exe` (`session.sessionkey`, `playdata.worlds`,
+  `playdata.characters`) e usa a chave de sessão `email\nsenha` que o Canary
+  espera com `authType = "password"`.
+* **Assets 15.33 no OTClient 15.11.** Os sprites e o `appearances.dat` do 15.33
+  funcionam, mas o `staticdata.dat` mudou de esquema e o OTClient recusava o
+  arquivo inteiro. `ferramentas/adaptar_staticdata_otclient.py` gera uma cópia
+  só com as entradas compatíveis (descarta 105 de 2.766).
+* **Compilação.** Visual Studio 2022 (toolset v143) + vcpkg clonado em
+  `local/vcpkg` (`servidor-local/compilar_otclient.bat`). A dependência ANGLE
+  foi removida do `vcpkg.json` porque a versão OpenGL não usa, e o download
+  dela pelo `chromium.googlesource.com` falhava.
+* O download automático de assets do OTClient (repositório de terceiros) ficou
+  desligado; os assets vêm só do client oficial instalado em `tibia/`.
+
+**O patch** (`tibia-acessibilidade/otclient-patch/acessibilidade.patch`):
+
+1. `ProtocolGame::parsePlayerStats` (C++): antes de ler `health`, `maxHealth`,
+   `freeCapacity`, `mana` e `maxMana`, anota a posição do opcode `0xA0` no
+   buffer, o offset do campo dentro da mensagem, os bytes crus e o endereço
+   desses bytes no buffer decifrado do `InputMessage`.
+2. `LocalPlayer::getStatOrigins()` (C++, exposto ao Lua): junta essa origem com
+   o endereço do objeto `LocalPlayer` e do campo (`m_health`, `m_mana`,
+   `m_freeCapacity`...) e o offset do campo dentro do objeto.
+3. Módulos Lua `game_healthinfo` e `game_inventory`: ligam o mouse nos painéis
+   (eram "phantom") e põem esse texto como tooltip, atualizado a cada mudança.
+
+Resultado real, segurando o mouse sobre a barra de vida:
+
+![Tooltip da Vida no OTClient](otclient_tooltip_vida.png)
+
+E sobre o CAP:
+
+![Tooltip do CAP no OTClient](otclient_tooltip_cap.png)
+
+O que os números mostram, conferidos no jogo: a mensagem `0xA0` começa com
+`health` no offset +1 (`B9 00 00 00` = 185), `maxHealth` no +5 e `freeCapacity`
+no +9 (`CC 10 00 00` = 4300 centésimos de oz, exibido como 43). Dentro do
+`LocalPlayer`, `m_freeCapacity` fica no offset +1744 e `m_health` no +1756 nesta
+compilação. Esse layout de pacote é o do protocolo 15.11 entre Canary e
+OTClient; ele bate com o modelo usado no simulador, mas continua não
+verificado contra o client oficial 15.33.
+
 ## 7. O que é observado e o que é inferido
 
 | Afirmação | Situação |
@@ -262,7 +324,8 @@ legítimo apontar memória. Eles mudam a cada execução (ASLR e alocação din�
 | Ordem do pipeline de rede | **Inferido** dos nomes das classes |
 | Uso de XTEA, RSA, zlib, número de sequência | **Observado** (RTTI/strings); detalhes de uso inferidos |
 | Formatos de `appearances.dat`, sprites, `map.dat` | **Observado** (decodificados) |
-| Layout byte a byte de PlayerDataCurrent e do enquadramento | **Inferido** do Canary; não verificado no 15.33 |
+| Layout byte a byte de PlayerDataCurrent no protocolo 15.11 (Canary ↔ OTClient) | **Observado** no OTClient patcheado |
+| O mesmo layout no client oficial 15.33 | **Inferido**; não verificado |
 
 Para confirmar o layout exato seria preciso desmontar
 `TProtobufServerMessageTranslator` (por exemplo com Ghidra via REA) ou ter um
@@ -293,3 +356,12 @@ python -I tibia-acessibilidade/client-acessivel/client_acessivel.py
 ```
 
 Os dois últimos rodam em terminais separados.
+
+Ambiente Canary + OTClient (depois de montar `local/` como descrito em 6.1):
+
+```bash
+tibia-acessibilidade\servidor-local\compilar_otclient.bat
+tibia-acessibilidade\servidor-local\iniciar_tudo.bat
+```
+
+Conta de teste do `schema.sql` do Canary: email `@god`, senha `god`.

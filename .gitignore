@@ -80,3 +80,6 @@ website/.i18n-*/
 
 # Client oficial do Tibia instalado localmente (nunca versionar)
 /tibia/
+
+# Servidor Canary e OTClient baixados para testes locais (nunca versionar)
+/local/
